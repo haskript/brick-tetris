@@ -16,7 +16,7 @@ extra-doc-files:    CHANGELOG.md
 common warnings
 
 executable brick-tetris
-    ghc-options: -O2 -Weverything -prof -fprof-auto -fprof-cafs -threaded +RTS -N4
+    ghc-options: -O2 -Weverything -threaded +RTS -N4
     import:           warnings
     main-is:          Main.hs
     -- other-modules:
