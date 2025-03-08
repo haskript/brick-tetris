@@ -134,7 +134,7 @@ drawer game = pure . foldl' (<=>) emptyWidget $ do
         yMax = (Vector.length $ gameState game) - 1
     y <- [yMax, yMax-1..0]
     pure $ foldl' (<+>) emptyWidget
-        $ do x <- [0..(Vector.head . fmap Vector.length $ gameState game) - 1]
+        $ do x <- [0..(safeInnerLength $ gameState game) - 1]
              pure $ if | gameState game Vector.! y Vector.! x -> Main.x
                        | (x,y) `elem` cursor -> o
                        | otherwise -> blank
@@ -187,14 +187,14 @@ processDirection key = do
             KLeft  -> (x - 1, y)
             KRight -> (x + 1, y)
             KDown  -> (x, y - 1)
-	rotated = case blockOrientation game of
-	    Up -> Main.Right
-	    Main.Right -> Down
-	    Down -> Main.Left
-	    Main.Left -> Up
+        rotated = case blockOrientation game of
+            Up -> Main.Right
+            Main.Right -> Down
+            Down -> Main.Left
+            Main.Left -> Up
         candidateGame = case key of
-	    KUp -> game {blockOrientation = rotated}
-	    _  -> game {cursor = shift $ cursor game}
+            KUp -> game {blockOrientation = rotated}
+            _  -> game {cursor = shift $ cursor game}
 
     let validMove = not . or $ ($ candidateGame)
            <$> [isCursorOutOfBounds, isCursorOverlapping]
@@ -212,11 +212,16 @@ isCursorOutOfBounds game = or $ checkConds <$> candidateCursor
   where
     checkConds (x,y) = or
         [ x < 0
-        , x >= length (Vector.head $ gameState game)
+        , x >= safeInnerLength (gameState game)
         , y < 0
         , y >= length (gameState game)
         ]
     candidateCursor = makeCursor game
+
+safeInnerLength :: Vector.Vector (Vector.Vector a) -> Int
+safeInnerLength vec = if 0 == length vec
+    then 0
+    else length $ Vector.head vec
 
 {-| Checks whether cursor's blocks are over the top,
  - and is needed to trigger game overs. -}
